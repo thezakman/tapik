@@ -99,14 +99,13 @@ def test_api_keys(api_keys, verbose):
             
             if result in error_messages:
                 status = "❌ [DENIED]"
-            elif verbose:
-                status = "✅ [WORKED]"
-                print (result)
+                print(f"{status} | {api_name}")
             else:
                 status = "✅ [WORKED]"
+                print(f"{status} | {api_name}")
+                if verbose:
+                    print(result)
             print(spacer)
-            print(f"{status} | {api_name}")
-
             
         print_test_result("Google Natural Language API", test_google_natural_language_api)
         print_test_result("Google Maps Geocoding API", test_google_maps_geocoding_api)
@@ -119,9 +118,8 @@ def test_api_keys(api_keys, verbose):
         print_test_result("Google Civic Information API", test_google_civic_information_api)
         print_test_result("Google Blogger API", test_google_blogger_api)
         print_test_result("Google Fonts API", test_google_fonts_api)
-        # Add additional APIs here following the same pattern.
 
-        print(spacer)
+        #print(spacer)
 
 def main():
     try:
