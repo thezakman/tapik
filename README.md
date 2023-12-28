@@ -1,5 +1,5 @@
-# tapik
-Pentest tool to test API keys - (T.API.K)
+# TAPIK - Tool to test API keys 
+
 
 ```
  _              _ _    
@@ -11,3 +11,8 @@ Pentest tool to test API keys - (T.API.K)
          | |           
          |_|  Version: 0.4
 ```
+
+TODO: 
+- ADD more keys validations
+- ADD and provider selector ex: (--provider 1,2,3,4)
+- Optimize and add comments
