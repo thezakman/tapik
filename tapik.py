@@ -72,6 +72,15 @@ def test_google_civic_information_api(api_key, verbose):
     response = requests.get(url)
     return process_response(response, verbose)
 
+def test_google_blogger_api(api_key, verbose):
+    url = f"https://www.googleapis.com/blogger/v3/blogs/2399953?key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+def test_google_fonts_api(api_key, verbose):
+    url = f"https://www.googleapis.com/webfonts/v1/webfonts?key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
 
 def test_api_keys(api_keys, verbose):
     for key in api_keys:
@@ -83,25 +92,25 @@ def test_api_keys(api_keys, verbose):
         print(f"│ {title} {key} │")
         print (f"╰{top2}╯")
 
-        print(spacer)
-        print("[*] | Google Natural Language API:", test_google_natural_language_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Maps Geocoding API:", test_google_maps_geocoding_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Books API:", test_google_books_api(key, verbose))
-        print(spacer)
-        print("[*] | Google YouTube Data API:", test_google_youtube_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Custom Search API:", test_google_custom_search_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Translate API:", test_google_translate_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Places API:", test_google_places_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Time Zone API:", test_google_time_zone_api(key, verbose))
-        print(spacer)
-        print("[*] | Google Civic Information API:", test_google_civic_information_api(key, verbose))
-        
+        def print_test_result(api_name, test_function):
+            result = test_function(key, verbose)
+            status = "✅ [WORKED]" if result == "WORKED" else "❌ [DENIED]"
+            print(spacer)
+            print(f"{status} | {api_name}")
+
+        print_test_result("Google Natural Language API", test_google_natural_language_api)
+        print_test_result("Google Maps Geocoding API", test_google_maps_geocoding_api)
+        print_test_result("Google Books API", test_google_books_api)
+        print_test_result("Google YouTube Data API", test_google_youtube_api)
+        print_test_result("Google Custom Search API", test_google_custom_search_api)
+        print_test_result("Google Translate API", test_google_translate_api)
+        print_test_result("Google Places API", test_google_places_api)
+        print_test_result("Google Time Zone API", test_google_time_zone_api)
+        print_test_result("Google Civic Information API", test_google_civic_information_api)
+        print_test_result("Google Blogger API", test_google_blogger_api)
+        print_test_result("Google Fonts API", test_google_fonts_api)
+        # Add additional APIs here following the same pattern.
+
         print(spacer)
 
 def main():
