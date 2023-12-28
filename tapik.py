@@ -7,13 +7,13 @@ def banner():
     banner = """
     
  _              _ _    
-| | @thezakman (_) |   
+| | @thezakman (_) | v0.4   
 | |_ __ _ _ __  _| | __
 | __/ _` | '_ \| | |/ /
 | || (_| | |_) | |   < 
  \__\__,_| .__/|_|_|\_\\
-         | |           
-  - TEST |_| API KEYS           
+   - TEST| |API KEYS -          
+         |_|
     """
     print(banner)
 
