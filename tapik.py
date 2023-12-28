@@ -94,15 +94,19 @@ def test_api_keys(api_keys, verbose):
         print(f"╰{top2}╯")
 
         def print_test_result(api_name, test_function):
+            error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED"]
             result = test_function(key, verbose)
-            if result == "PERMISSION_DENIED":
+            
+            if result in error_messages:
                 status = "❌ [DENIED]"
             elif verbose:
-                status = result
+                status = "✅ [WORKED]"
+                print (result)
             else:
                 status = "✅ [WORKED]"
             print(spacer)
             print(f"{status} | {api_name}")
+
             
         print_test_result("Google Natural Language API", test_google_natural_language_api)
         print_test_result("Google Maps Geocoding API", test_google_maps_geocoding_api)
