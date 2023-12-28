@@ -84,7 +84,7 @@ def test_google_fonts_api(api_key, verbose):
 
 def test_api_keys(api_keys, verbose):
     for key in api_keys:
-        spacer = "─"*50
+        spacer = "─"*60
         title = "Testing API Key:"
         top = len(title+key)+3
         top2 = "─"*top
