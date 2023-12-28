@@ -1,4 +1,4 @@
-# TAPIK - Tool to test API keys 
+# TAPIK - test API keys 
 
 
 ```
