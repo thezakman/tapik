@@ -119,8 +119,6 @@ def test_api_keys(api_keys, verbose):
         print_test_result("Google Blogger API", test_google_blogger_api)
         print_test_result("Google Fonts API", test_google_fonts_api)
 
-        #print(spacer)
-
 def main():
     try:
         parser = argparse.ArgumentParser(description='Test Google API keys')
