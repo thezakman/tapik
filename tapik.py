@@ -18,7 +18,7 @@ def banner():
     print(banner)
 
 def process_response(response, verbose):
-    if "PERMISSION_DENIED" in response.text:
+    if "PERMISSION_DENIED" in response.text or "REQUEST_DENIED" in response.text:
         return "PERMISSION_DENIED"
     else:
         return "WORKED" if not verbose else response.text
@@ -57,6 +57,20 @@ def test_google_translate_api(api_key, verbose):
     response = requests.post(url, json=data, headers=headers)
     return process_response(response, verbose)
 
+def test_google_places_api(api_key, verbose):
+    url = f"https://maps.googleapis.com/maps/api/place/findplacefromtext/json?key={api_key}&input=Museum%20of%20Contemporary%20Art%20Australia&inputtype=textquery"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+def test_google_time_zone_api(api_key, verbose):
+    url = f"https://maps.googleapis.com/maps/api/timezone/json?key={api_key}&location=34.052235,-118.243683&timestamp=1331161200"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+def test_google_civic_information_api(api_key, verbose):
+    url = f"https://www.googleapis.com/civicinfo/v2/representatives?key={api_key}&address=1600%20Amphitheatre%20Parkway%20Mountain%20View%2C%20CA%2094043"
+    response = requests.get(url)
+    return process_response(response, verbose)
 
 
 def test_api_keys(api_keys, verbose):
@@ -81,6 +95,12 @@ def test_api_keys(api_keys, verbose):
         print("[*] | Google Custom Search API:", test_google_custom_search_api(key, verbose))
         print(spacer)
         print("[*] | Google Translate API:", test_google_translate_api(key, verbose))
+        print(spacer)
+        print("[*] | Google Places API:", test_google_places_api(key, verbose))
+        print(spacer)
+        print("[*] | Google Time Zone API:", test_google_time_zone_api(key, verbose))
+        print(spacer)
+        print("[*] | Google Civic Information API:", test_google_civic_information_api(key, verbose))
         
         print(spacer)
 
