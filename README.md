@@ -1,6 +1,7 @@
 # tapik
 Pentest tool to test API keys - (T.API.K)
 
+```
  _              _ _    
 | | @thezakman (_) |   
 | |_ __ _ _ __  _| | __
@@ -8,4 +9,5 @@ Pentest tool to test API keys - (T.API.K)
 | || (_| | |_) | |   < 
  \__\__,_| .__/|_|_|\_\\
          | |           
-  - TEST |_| API KEYS 
+         |_|  Version: 0.4
+```
