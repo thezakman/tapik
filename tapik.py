@@ -18,10 +18,11 @@ def banner():
     print(banner)
 
 def process_response(response, verbose):
-    if "PERMISSION_DENIED" in response.text or "REQUEST_DENIED" in response.text:
+    error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED"]
+    if any(error_message in response.text for error_message in error_messages):
         return "PERMISSION_DENIED"
     else:
-        return "WORKED" if not verbose else response.text
+        return response.text if verbose else "WORKED"
 
 def test_google_natural_language_api(api_key, verbose):
     url = "https://language.googleapis.com/v1/documents:analyzeEntities"
@@ -84,20 +85,25 @@ def test_google_fonts_api(api_key, verbose):
 
 def test_api_keys(api_keys, verbose):
     for key in api_keys:
-        spacer = "─"*60
+        spacer = "─" * 60
         title = "Testing API Key:"
-        top = len(title+key)+3
-        top2 = "─"*top
-        print (f"╭{top2}╮")
+        top = len(title + key) + 3
+        top2 = "─" * top
+        print(f"╭{top2}╮")
         print(f"│ {title} {key} │")
-        print (f"╰{top2}╯")
+        print(f"╰{top2}╯")
 
         def print_test_result(api_name, test_function):
             result = test_function(key, verbose)
-            status = "✅ [WORKED]" if result == "WORKED" else "❌ [DENIED]"
+            if result == "PERMISSION_DENIED":
+                status = "❌ [DENIED]"
+            elif verbose:
+                status = result
+            else:
+                status = "✅ [WORKED]"
             print(spacer)
             print(f"{status} | {api_name}")
-
+            
         print_test_result("Google Natural Language API", test_google_natural_language_api)
         print_test_result("Google Maps Geocoding API", test_google_maps_geocoding_api)
         print_test_result("Google Books API", test_google_books_api)
@@ -114,21 +120,35 @@ def test_api_keys(api_keys, verbose):
         print(spacer)
 
 def main():
-    parser = argparse.ArgumentParser(description='Test Google API keys')
-    parser.add_argument('-k', '--key', help='Single API key to test')
-    parser.add_argument('-l', '--list', help='File containing list of API keys, one per line')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Print full responses for successful tests')
+    try:
+        parser = argparse.ArgumentParser(description='Test Google API keys')
+        parser.add_argument('-k', '--key', help='Single API key to test')
+        parser.add_argument('-l', '--list', help='File containing list of API keys, one per line')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Print full responses for successful tests')
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    if args.key:
-        test_api_keys([args.key], args.verbose)
-    elif args.list:
-        with open(args.list, 'r') as file:
-            keys = file.read().splitlines()
-            test_api_keys(keys, args.verbose)
-    else:
-        print("No API key or list provided. Use -k to provide a single key or -l to provide a list of keys.")
+        if args.key:
+            test_api_keys([args.key], args.verbose)
+        elif args.list:
+            with open(args.list, 'r') as file:
+                keys = file.read().splitlines()
+                print(f"[Total of keys]: {len(keys)}")
+               
+                test_api_keys(keys, args.verbose)
+
+                #Debugging output
+                '''
+                print("Keys read from file:")
+                for k in keys:
+                    print(f"'{k}'")
+                '''
+        else:
+            print("No API key or list provided. Use -k to provide a single key or -l to provide a list of keys.")
+    
+    except KeyboardInterrupt:
+        print("\n[!] Exiting...")
+        exit(0)
 
 if __name__ == "__main__":
     banner()
