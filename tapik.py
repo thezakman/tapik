@@ -19,10 +19,10 @@ def banner():
 
 def process_response(response, verbose):
     error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED"]
-    if any(error_message in response.text for error_message in error_messages):
-        return "PERMISSION_DENIED"
-    else:
-        return response.text if verbose else "WORKED"
+    for error_message in error_messages:
+        if error_message in response.text:
+            return error_message  # Return the specific error message
+    return response.text if verbose else "WORKED"
 
 def test_google_natural_language_api(api_key, verbose):
     url = "https://language.googleapis.com/v1/documents:analyzeEntities"
@@ -98,7 +98,7 @@ def test_api_keys(api_keys, verbose):
             result = test_function(key, verbose)
             
             if result in error_messages:
-                status = "❌ [DENIED]"
+                status = f"❌ [{result}]"
                 print(f"{status} | {api_name}")
             else:
                 status = "✅ [WORKED]"
