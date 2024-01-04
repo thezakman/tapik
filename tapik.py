@@ -19,7 +19,7 @@ def banner():
     print(banner)
 
 def process_response(response, verbose):
-    error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED"]
+    error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST"]
     for error_message in error_messages:
         if error_message in response.text.upper():
             return error_message  # Return the specific error message
@@ -138,7 +138,7 @@ def test_api_keys(api_keys, verbose, output_file=None):
         print(f"╰{top2}╯")
 
         def print_test_result(api_name, test_function):
-            error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED"]
+            error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST"]
             result = test_function(key, verbose)
             
             if result in error_messages:
