@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import webbrowser
 import requests
 import argparse
 import json
@@ -35,14 +35,24 @@ def test_google_maps_api_Consumersearch(api_key, verbose):
 def test_google_maps_api_Staticmap(api_key, verbose):
     url = f"https://maps.googleapis.com/maps/api/staticmap?center=45%2C10&zoom=7&size=400x400&key={api_key}"
     response = requests.get(url)
+    # Check if the response is an image
+    if response.headers['Content-Type'].startswith('image/'):
+        if verbose:
+            #webbrowser.open(response.url)
+            return f"[!] Image URL: {response.url}"
     return process_response(response, verbose)
 
 
 #"3. APIKey Streetview $7 Per 1000 Request"
 def test_google_maps_api_Streetview(api_key, verbose):
-    url = f"https://maps.googleapis.com/maps/api/streetview?size=400x400&location=40.720032,-73.988354&fov=90&heading=235&pitch=10&key={api_key}"
 #   url = f"https://maps.googleapis.com/maps/api/streetview?size=400x400&location=46.414382,10.013988&key={api_key}"
+    url = f"https://maps.googleapis.com/maps/api/streetview?size=400x400&location=40.720032,-73.988354&fov=90&heading=235&pitch=10&key={api_key}"
     response = requests.get(url)
+    # Check if the response is an image
+    if response.headers['Content-Type'].startswith('image/'):
+        if verbose:
+            #webbrowser.open(response.url)
+            return f"[!] Image URL: {response.url}"
     return process_response(response, verbose)
 
 #"4. APIKey Direction $10 Per 1000 Request"
