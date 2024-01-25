@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-import webbrowser
+#import webbrowser
 import requests
 import argparse
 import json
 
+VERSION = "v0.8.1"
+
 def banner():
-    banner = """
+    banner = f"""
     
  _              _ _    
-| | @thezakman (_) | v0.8.1   
+| | @thezakman (_) | {VERSION}
 | |_ __ _ _ __  _| | __
 | __/ _` | '_ \| | |/ /
 | || (_| | |_) | |   < 
  \__\__,_| .__/|_|_|\_\\
-   - TEST| |API KEYS -          
+   - TEST| |API KEYS -
          |_|
     """
     print(banner)
@@ -257,8 +259,8 @@ def test_api_keys(api_keys, verbose, output_file=None):
             print(spacer)
 
         # Google Maps
-        print_test_result("Google Maps API - Autocomplate", test_google_maps_api_Autocomplete)
-        print_test_result("Google Maps API - ConsumerSearch", test_google_maps_api_Consumersearch)
+        print_test_result("Google Maps API - Autocomplete", test_google_maps_api_Autocomplete)
+        print_test_result("Google Maps API - Consumer Search", test_google_maps_api_Consumersearch)
         print_test_result("Google Maps API - Directions", test_google_maps_api_Directions)
         print_test_result("Google Maps API - Distance Matrix", test_google_maps_api_Distancematrix)
         print_test_result("Google Maps API - Elevation", test_google_maps_api_elevation)
