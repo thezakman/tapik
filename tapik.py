@@ -1,8 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
 #import webbrowser
 import requests
 import argparse
 import json
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
+
+# Suprimir apenas o NotOpenSSLWarning
+warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
 VERSION = "v0.8.1"
 
@@ -222,7 +227,9 @@ def test_google_vision_api(api_key, verbose):
                     }
                 },
                 "features": [
-                    {"type": "LABEL_DETECTION"}  # Tipo de análise, e.g., detecção de rótulos
+                    {"type": "DOCUMENT_TEXT_DETECTION"}  
+                    # Tipo de análise: FACE_DETECTION, LABEL_DETECTION, LANDMARK_DETECTION
+                    # LOGO_DETECTION, SAFE_SEARCH_DETECTION, IMAGE_PROPERTIES, CROP_HINTS, WEB_DETECTION
                 ]
             }
         ]
