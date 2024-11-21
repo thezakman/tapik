@@ -26,7 +26,7 @@ def banner():
     print(banner)
 
 def process_response(response, verbose):
-    error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
+    error_messages = ["UNAUTHENTICATED", "PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
     for error_message in error_messages:
         if error_message in response.text.upper():
             return error_message  # Return the specific error message
@@ -237,6 +237,66 @@ def test_google_vision_api(api_key, verbose):
     response = requests.post(url, json=data, headers=headers)
     return process_response(response, verbose)
 
+#"28. Tests the Google Calendar API"
+def test_google_calendar_api(api_key, verbose):
+    url = f"https://www.googleapis.com/calendar/v3/calendars/primary/events?key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+#"29. Tests the Google Tasks API"
+def test_google_tasks_api(api_key, verbose):
+    url = f"https://tasks.googleapis.com/tasks/v1/users/@me/lists?key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+#"30. Tests the Google People API"
+def test_google_people_api(api_key, verbose):
+    url = f"https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses&key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+#"31. Tests the Google Cloud Natural Language API"
+def test_google_cloud_natural_language_api(api_key, verbose):
+    url = "https://language.googleapis.com/v1/documents:analyzeSentiment"
+    headers = {"X-Goog-Api-Key": api_key, "Content-Type": "application/json"}
+    data = {
+        "document": {
+            "type": "PLAIN_TEXT",
+            "content": "I love coding! It's so much fun."
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
+#"32. Tests the Google Cloud Text-to-Speech API"
+def test_google_cloud_text_to_speech_api(api_key, verbose):
+    url = "https://texttospeech.googleapis.com/v1/text:synthesize"
+    headers = {"X-Goog-Api-Key": api_key, "Content-Type": "application/json"}
+    data = {
+        "input": {"text": "Hello, world!"},
+        "voice": {"languageCode": "en-US", "ssmlGender": "NEUTRAL"},
+        "audioConfig": {"audioEncoding": "MP3"}
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
+#"33. Tests the Google Cloud Speech-to-Text API"
+def test_google_cloud_speech_to_text_api(api_key, verbose):
+    url = "https://speech.googleapis.com/v1/speech:recognize"
+    headers = {"X-Goog-Api-Key": api_key, "Content-Type": "application/json"}
+    data = {
+        "config": {
+            "encoding": "LINEAR16",
+            "sampleRateHertz": 16000,
+            "languageCode": "en-US"
+        },
+        "audio": {
+            "uri": "gs://cloud-samples-tests/speech/brooklyn.flac"
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
 
 def test_api_keys(api_keys, verbose, output_file=None):
     api_results = {}
@@ -251,7 +311,7 @@ def test_api_keys(api_keys, verbose, output_file=None):
         print(f"╰{top2}╯")
 
         def print_test_result(api_name, test_function):
-            error_messages = ["PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
+            error_messages = ["UNAUTHENTICATED","PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
             result = test_function(key, verbose)
             
             if result in error_messages:
@@ -294,6 +354,14 @@ def test_api_keys(api_keys, verbose, output_file=None):
         print_test_result("Google Drive API", test_google_drive_api)
         print_test_result("Google Sheets API", test_google_sheets_api)
         print_test_result("Google Vision API", test_google_vision_api)
+
+        print_test_result("Google Calendar API", test_google_calendar_api)
+        print_test_result("Google Tasks API", test_google_tasks_api)
+        print_test_result("Google People API", test_google_people_api)
+        print_test_result("Google Cloud Natural Language API", test_google_cloud_natural_language_api)
+        print_test_result("Google Cloud Text-to-Speech API", test_google_cloud_text_to_speech_api)
+        print_test_result("Google Cloud Speech-to-Text API", test_google_cloud_speech_to_text_api)
+
 
         ''' Neet to invest more into this'''
         #print_test_result("Google Cloud Storage API", test_google_cloud_storage_api)
