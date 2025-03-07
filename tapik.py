@@ -4,25 +4,162 @@ import requests
 import argparse
 import json
 import warnings
+import logging
+import time
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 from urllib3.exceptions import InsecureRequestWarning
+from colorama import init, Fore, Back, Style
+
+# Inicialize o colorama (necessário para Windows)
+init(autoreset=True)
+
+class Colors:
+    """Define cores e estilos para output"""
+    HEADER = Fore.CYAN
+    SUCCESS = Fore.GREEN
+    ERROR = Fore.RED
+    WARNING = Fore.YELLOW
+    INFO = Fore.BLUE
+    RESET = Style.RESET_ALL
+    BOLD = Style.BRIGHT
 
 # Suprimir apenas o NotOpenSSLWarning
 warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
-VERSION = "v0.8.2"
+VERSION = "v0.8.3"
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+@dataclass
+class ApiTestResult:
+    """Armazena o resultado de um teste de API"""
+    api_name: str
+    status: bool
+    message: str
+    response_data: Optional[str] = None
+
+class RateLimiter:
+    """Implementa rate limiting para as requisições"""
+    def __init__(self, calls: int = 1, period: int = 1):
+        self.calls = calls
+        self.period = period
+        self.timestamps = []
+
+    def wait(self):
+        """Espera se necessário para respeitar o rate limit"""
+        now = time.time()
+        self.timestamps = [t for t in self.timestamps if now - t <= self.period]
+        
+        if len(self.timestamps) >= self.calls:
+            sleep_time = self.timestamps[0] + self.period - now
+            if (sleep_time > 0):
+                time.sleep(sleep_time)
+        
+        self.timestamps.append(now)
+
+class ApiTester:
+    """Classe base para testes de API"""
+    ERROR_MESSAGES = [
+        "UNAUTHENTICATED",
+        "PERMISSION_DENIED", 
+        "INVALID_ARGUMENT",
+        "REQUEST_DENIED",
+        "REJECTED",
+        "BLOCKED",
+        "BAD REQUEST",
+        "INSUFFICIENTFILEPERMISSIONS"
+    ]
+    
+    def __init__(self):
+        self.rate_limiter = RateLimiter(calls=10, period=1)  # 10 chamadas por segundo
+        
+    def test_api_keys(self, api_keys: List[str], verbose: bool = False) -> Dict[str, Dict[str, ApiTestResult]]:
+        """
+        Testa uma lista de chaves de API
+        
+        Args:
+            api_keys: Lista de chaves para testar
+            verbose: Se True, mostra respostas detalhadas
+            
+        Returns:
+            Dicionário com resultados dos testes
+        """
+        results = {}
+        
+        for key in api_keys:
+            results[key] = {}
+            self._print_key_header(key)
+            
+            for api_name, test_func in self._get_test_functions().items():
+                try:
+                    self.rate_limiter.wait()
+                    result = self._run_test(api_name, test_func, key, verbose)
+                    results[key][api_name] = result
+                    self._print_result(result)
+                except Exception as e:
+                    logging.error(f"Erro testando {api_name}: {str(e)}")
+                    
+        return results
+
+    def _run_test(self, api_name: str, test_func, key: str, verbose: bool) -> ApiTestResult:
+        """Executa um teste individual"""
+        result = test_func(key, verbose)
+        
+        if result in self.ERROR_MESSAGES:
+            return ApiTestResult(
+                api_name=api_name,
+                status=False,
+                message=result
+            )
+            
+        return ApiTestResult(
+            api_name=api_name,
+            status=True,
+            message="WORKED",
+            response_data=result if verbose else None
+        )
+
+    def _print_key_header(self, key: str):
+        """Imprime o cabeçalho colorido para cada chave"""
+        title = "Testing API Key:"
+        top = len(title + key) + 3
+        top2 = "─" * top
+        print(f"{Colors.HEADER}╭{top2}╮")
+        print(f"│ {Colors.BOLD}{title} {key} │") 
+        print(f"╰{top2}╯{Colors.RESET}")
+
+    def _print_result(self, result: ApiTestResult):
+        """Imprime o resultado colorido de um teste"""
+        if result.status:
+            status = f"{Colors.SUCCESS}✅ [WORKED]{Colors.RESET}"
+        else:
+            status = f"{Colors.ERROR}❌ [{result.message}]{Colors.RESET}"
+            
+        print(f"{status} | {Colors.BOLD}{result.api_name}{Colors.RESET}")
+        
+        if result.response_data:
+            print(f"{Colors.INFO}{result.response_data}{Colors.RESET}")
+            
+        print(f"{Colors.HEADER}{'─' * 60}{Colors.RESET}")
 
 def banner():
+    """Banner colorido do programa"""
     banner = f"""
-    
+{Colors.BOLD + Colors.SUCCESS}    
  _              _ _    
-| | @thezakman (_) | {VERSION}
+| | {Colors.RESET}@thezakman{Colors.BOLD + Colors.SUCCESS} (_) | {Colors.RESET + Colors.WARNING}{VERSION}{Colors.BOLD + Colors.SUCCESS}  
 | |_ __ _ _ __  _| | __
 | __/ _` | '_ \| | |/ /
 | || (_| | |_) | |   < 
  \__\__,_| .__/|_|_|\_\\
-   - TEST| |API KEYS -
+   {Colors.WARNING}- TEST{Colors.BOLD + Colors.SUCCESS}| |{Colors.WARNING}API KEYS -{Colors.BOLD + Colors.SUCCESS}
          |_|
-    """
+{Colors.RESET}"""
     print(banner)
 
 def process_response(response, verbose):
@@ -302,27 +439,29 @@ def test_api_keys(api_keys, verbose, output_file=None):
     api_results = {}
     for key in api_keys:
         api_results[key] = {}
-        spacer = "─" * 60
+        spacer = f"{Colors.HEADER}{'─' * 60}{Colors.RESET}"
         title = "Testing API Key:"
         top = len(title + key) + 3
         top2 = "─" * top
-        print(f"╭{top2}╮")
-        print(f"│ {title} {key} │")
-        print(f"╰{top2}╯")
+        print(f"{Colors.INFO}╭{top2}╮")
+        print(f"{Colors.INFO}│ {Colors.RESET + Colors.BOLD}{title} {key} {Colors.RESET + Colors.INFO}│")
+        print(f"{Colors.INFO}╰{top2}╯{Colors.RESET}")
 
         def print_test_result(api_name, test_function):
-            error_messages = ["UNAUTHENTICATED","PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
+            error_messages = ["UNAUTHENTICATED","PERMISSION_DENIED", "INVALID_ARGUMENT", 
+                            "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", 
+                            "INSUFFICIENTFILEPERMISSIONS"]
             result = test_function(key, verbose)
             
             if result in error_messages:
-                status = f"❌ [{result}]"
-                print(f"{status} | {api_name}")
+                status = f"{Colors.ERROR}❌ [{result}]{Colors.RESET}"
+                print(f"{status} | {Colors.BOLD}{api_name}{Colors.RESET}")
             else:
-                status = "✅ [WORKED]"
-                print(f"{status} | {api_name}")
+                status = f"{Colors.SUCCESS}✅ [WORKED]{Colors.RESET}"
+                print(f"{status} | {Colors.BOLD}{api_name}{Colors.RESET}")
                 api_results[key][api_name] = result
                 if verbose:
-                    print(result)
+                    print(f"{Colors.INFO}{result}{Colors.RESET}")
             print(spacer)
 
         # Google Maps
