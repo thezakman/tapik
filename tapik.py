@@ -335,10 +335,33 @@ def test_google_fonts_api(api_key, verbose):
 
 #"24. Tests the Google Cloud Storage API"
 def test_google_cloud_storage_api(api_key, verbose):
-    url = f"https://www.googleapis.com/storage/v1/b/myproject/iam?key={api_key}" #myproject
-    response = requests.get(url)
-    return process_response(response, verbose)
-
+    """Testa a API do Google Cloud Storage usando uma operação de listagem"""
+    # Endpoint para listar buckets (operação mais básica)
+    url = f"https://storage.googleapis.com/storage/v1/b?project=my-project&key={api_key}"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key
+    }
+    
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            params={"maxResults": 1}  # Limita a 1 resultado para economia
+        )
+        
+        # Se a resposta contiver "error" com código 401/403, ainda é um resultado válido
+        # pois indica que a API key é válida mas precisa de permissões
+        if response.status_code in [401, 403]:
+            return "PERMISSION_DENIED"
+            
+        return process_response(response, verbose)
+        
+    except Exception as e:
+        logging.error(f"Erro ao testar Cloud Storage API: {str(e)}")
+        return "BAD REQUEST"
+    
 #"25. Tests the Google Drive API"
 def test_google_drive_api(api_key, verbose):
     url = f"https://www.googleapis.com/drive/v3/files?key={api_key}"
@@ -434,9 +457,208 @@ def test_google_cloud_speech_to_text_api(api_key, verbose):
     response = requests.post(url, json=data, headers=headers)
     return process_response(response, verbose)
 
+#"34. Tests the Google Cloud Translation API"
+def test_google_cloud_translation_api(api_key, verbose):
+    url = "https://translation.googleapis.com/language/translate/v2/languages"  # Endpoint corrigido
+    headers = {
+        "X-Goog-Api-Key": api_key,
+        "Content-Type": "application/json"
+    }
+    params = {
+        "target": "pt",
+        "key": api_key
+    }
+    response = requests.get(url, headers=headers, params=params)
+    return process_response(response, verbose)
 
-def test_api_keys(api_keys, verbose, output_file=None):
+#"35. Tests the Google Cloud Document AI API"
+def test_google_cloud_document_ai_api(api_key, verbose):
+    url = "https://documentai.googleapis.com/v1/projects/-/locations/us-central1/processors"  # Endpoint corrigido
+    headers = {
+        "X-Goog-Api-Key": api_key,
+        "Content-Type": "application/json"
+    }
+    params = {
+        "key": api_key
+    }
+    response = requests.get(url, headers=headers, params=params)
+    return process_response(response, verbose)
+
+#"36. Tests the Google Cloud Video Intelligence API"
+def test_google_cloud_video_intelligence_api(api_key, verbose):
+    url = "https://videointelligence.googleapis.com/v1/videos:annotate"
+    headers = {"X-Goog-Api-Key": api_key, "Content-Type": "application/json"}
+    data = {
+        "inputContent": "base64_encoded_video",
+        "features": ["LABEL_DETECTION"]
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
+#"37. Tests the Google Maps Places Photos API"
+def test_google_maps_places_photos_api(api_key, verbose):
+    # Primeiro precisamos obter uma referência de foto válida
+    search_url = f"https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=Empire%20State%20Building&inputtype=textquery&fields=photos&key={api_key}"
+    search_response = requests.get(search_url)
+    search_data = json.loads(search_response.text)
+    
+    if 'candidates' in search_data and len(search_data['candidates']) > 0:
+        if 'photos' in search_data['candidates'][0]:
+            photo_reference = search_data['candidates'][0]['photos'][0]['photo_reference']
+            url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference={photo_reference}&key={api_key}"
+            response = requests.get(url)
+            return process_response(response, verbose)
+    return "BAD REQUEST"
+
+#"38. Tests the Google BigQuery API"
+def test_google_bigquery_api(api_key, verbose):
+    url = f"https://bigquery.googleapis.com/bigquery/v2/projects/my-project/queries?key={api_key}"
+    data = {
+        "query": "SELECT name FROM `bigquery-public-data.usa_names.usa_1910_2013` LIMIT 10"
+    }
+    response = requests.post(url, json=data)
+    return process_response(response, verbose)
+
+#39. Tests the Google Cloud Datastore API
+def test_google_cloud_datastore_api(api_key, verbose):
+    url = f"https://datastore.googleapis.com/v1/projects/my-project:runQuery?key={api_key}"
+    data = {
+        "gqlQuery": {
+            "queryString": "SELECT * FROM Task"
+        }
+    }
+    response = requests.post(url, json=data)
+    return process_response(response, verbose)
+
+#40. Tests the Google Cloud Natural Language Sentiment API
+def test_google_natural_language_sentiment(api_key, verbose):
+    """Testa a API de Análise de Sentimento (US$ 1.00 por 1.000 requisições)"""
+    url = "https://language.googleapis.com/v1/documents:analyzeSentiment"
+    headers = {"X-Goog-Api-Key": api_key, "Content-Type": "application/json"}
+    data = {
+        "document": {
+            "type": "PLAIN_TEXT",
+            "content": "Google Cloud Natural Language API is fantastic!"
+        },
+        "encodingType": "UTF8"
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
+#41 Tests the Google Safe Browsing API
+def test_google_safe_browsing_api(api_key, verbose):
+    """Testa a API de Safe Browsing (US$ 0.75 por 1.000 requisições)"""
+    url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "client": {"clientId": "test", "clientVersion": "1.0"},
+        "threatInfo": {
+            "threatTypes": ["MALWARE"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": "http://example.com"}]
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    return process_response(response, verbose)
+
+#42 Tests the Google PageSpeed Insights API
+def test_google_pagespeed_api(api_key, verbose):
+    """Testa a API do PageSpeed Insights (US$ 0.15 por 1.000 requisições)"""
+    url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=https://google.com&key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+#43 Tests the Google Maps Places Nearby API
+def test_google_maps_places_nearby(api_key, verbose):
+    """Testa a API de Pesquisa de Locais Próximos (US$ 32 por 1.000 requisições)"""
+    url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-33.8670522,151.1957362&radius=500&type=restaurant&key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+#44 Tests the Google Fact Check API
+def test_google_fact_check_api(api_key, verbose):
+    """Testa a API de Verificação de Fatos (US$ 0.00 - Gratuita com limites)"""
+    url = f"https://factchecktools.googleapis.com/v1alpha1/claims:search?query=climate&key={api_key}"
+    response = requests.get(url)
+    return process_response(response, verbose)
+
+def parse_api_selection(api_selection: str) -> list:
+    """
+    Converte a string de seleção em uma lista de números de API
+    Exemplo: 
+        "1,2,3" -> [1,2,3]
+        "1-3" -> [1,2,3]
+        "1" -> [1]
+    """
+    result = set()
+    if not api_selection:
+        return list(range(1,44))  # Todas as APIs (1-44)
+        
+    parts = api_selection.split(',')
+    for part in parts:
+        if '-' in part:
+            start, end = map(int, part.split('-'))
+            result.update(range(start, end + 1))
+        else:
+            result.add(int(part))
+    return sorted(list(result))
+
+def get_api_function_by_number(number: int):
+    """Retorna a função de teste correspondente ao número da API"""
+    api_functions = {
+        1: ("Google Maps API - Consumer Search", test_google_maps_api_Consumersearch),
+        2: ("Google Maps API - StaticMap", test_google_maps_api_Staticmap),
+        3: ("Google Maps API - StreetView", test_google_maps_api_Streetview),
+        4: ("Google Maps API - Directions", test_google_maps_api_Directions),
+        5: ("Google Maps API - Geocode", test_google_maps_api_geocode),
+        6: ("Google Maps API - Distance Matrix", test_google_maps_api_Distancematrix),
+        7: ("Google Maps API - Find Place From Text", test_google_maps_api_Findplacefromtext),
+        8: ("Google Maps API - Autocomplete", test_google_maps_api_Autocomplete),
+        9: ("Google Maps API - Elevation", test_google_maps_api_elevation),
+        10: ("Google Maps API - Timezone", test_google_maps_api_Timezone),
+        11: ("Google Maps API - Nearest Roads", test_google_maps_api_NearestRoads),
+        12: ("Google Maps API - Geolocation", test_google_maps_api_geolocate),
+        13: ("Google Maps API - Snap To Roads", test_google_maps_api_SnapToRoads),
+        14: ("Google Maps API - Speed Limits", test_google_maps_api_SpeedLimits),
+        15: ("Google Maps API - Place Details", test_google_maps_api_place_detais),
+        16: ("Google Natural Language API", test_google_natural_language_api),
+        17: ("Google Books API", test_google_books_api),
+        18: ("Google YouTube API", test_google_youtube_api),
+        19: ("Google Custom Search API", test_google_custom_search_api),
+        20: ("Google Translate API", test_google_translate_api),
+        21: ("Google Civic API", test_google_civic_information_api),
+        22: ("Google Blogger API", test_google_blogger_api),
+        23: ("Google WebFonts API", test_google_fonts_api),
+        24: ("Google Cloud Storage API", test_google_cloud_storage_api),
+        25: ("Google Drive API", test_google_drive_api),
+        26: ("Google Sheets API", test_google_sheets_api),
+        27: ("Google Vision API", test_google_vision_api),
+        28: ("Google Calendar API", test_google_calendar_api),
+        29: ("Google Tasks API", test_google_tasks_api),
+        30: ("Google People API", test_google_people_api),
+        31: ("Google Cloud Natural Language API", test_google_cloud_natural_language_api),
+        32: ("Google Cloud Text-to-Speech API", test_google_cloud_text_to_speech_api),
+        33: ("Google Cloud Speech-to-Text API", test_google_cloud_speech_to_text_api),
+        34: ("Google Cloud Translation API", test_google_cloud_translation_api),
+        35: ("Google Cloud Document AI API", test_google_cloud_document_ai_api),
+        36: ("Google Cloud Video Intelligence API", test_google_cloud_video_intelligence_api),
+        37: ("Google Maps Places Photos API", test_google_maps_places_photos_api),
+        38: ("Google BigQuery API", test_google_bigquery_api),
+        39: ("Google Cloud Datastore API", test_google_cloud_datastore_api),
+        40: ("Google Cloud Natural Language Sentiment API", test_google_natural_language_sentiment),
+        41: ("Google Safe Browsing API", test_google_safe_browsing_api),
+        42: ("Google PageSpeed Insights API", test_google_pagespeed_api),
+        43: ("Google Maps Places Nearby API", test_google_maps_places_nearby),
+        44: ("Google Fact Check API", test_google_fact_check_api)
+    }
+    return api_functions.get(number)
+
+# Modifique a função test_api_keys para aceitar a lista de APIs
+def test_api_keys(api_keys, verbose, output_file=None, api_selection=None):
     api_results = {}
+    selected_apis = parse_api_selection(api_selection)
+    
     for key in api_keys:
         api_results[key] = {}
         spacer = f"{Colors.HEADER}{'─' * 60}{Colors.RESET}"
@@ -447,69 +669,26 @@ def test_api_keys(api_keys, verbose, output_file=None):
         print(f"{Colors.INFO}│ {Colors.RESET + Colors.BOLD}{title} {key} {Colors.RESET + Colors.INFO}│")
         print(f"{Colors.INFO}╰{top2}╯{Colors.RESET}")
 
-        def print_test_result(api_name, test_function):
-            error_messages = ["UNAUTHENTICATED","PERMISSION_DENIED", "INVALID_ARGUMENT", 
-                            "REQUEST_DENIED", "REJECTED", "BLOCKED", "BAD REQUEST", 
-                            "INSUFFICIENTFILEPERMISSIONS"]
-            result = test_function(key, verbose)
-            
-            if result in error_messages:
-                status = f"{Colors.ERROR}❌ [{result}]{Colors.RESET}"
-                print(f"{status} | {Colors.BOLD}{api_name}{Colors.RESET}")
-            else:
-                status = f"{Colors.SUCCESS}✅ [WORKED]{Colors.RESET}"
-                print(f"{status} | {Colors.BOLD}{api_name}{Colors.RESET}")
-                api_results[key][api_name] = result
-                if verbose:
-                    print(f"{Colors.INFO}{result}{Colors.RESET}")
-            print(spacer)
+        for api_num in selected_apis:
+            api_func = get_api_function_by_number(api_num)
+            if api_func:
+                api_name, test_function = api_func
+                try:
+                    result = test_function(key, verbose)
+                    if result in ApiTester.ERROR_MESSAGES:
+                        status = f"{Colors.ERROR}❌ [{result}]{Colors.RESET}"
+                    else:
+                        status = f"{Colors.SUCCESS}✅ [WORKED]{Colors.RESET}"
+                        api_results[key][api_name] = result
+                    
+                    print(f"{status} | {Colors.BOLD}{api_name}{Colors.RESET}")
+                    if verbose and result not in ApiTester.ERROR_MESSAGES:
+                        print(f"{Colors.INFO}{result}{Colors.RESET}")
+                    print(spacer)
+                except Exception as e:
+                    logging.error(f"Erro testando {api_name}: {str(e)}")
 
-        # Google Maps
-        print_test_result("Google Maps API - Autocomplete", test_google_maps_api_Autocomplete)
-        print_test_result("Google Maps API - Consumer Search", test_google_maps_api_Consumersearch)
-        print_test_result("Google Maps API - Directions", test_google_maps_api_Directions)
-        print_test_result("Google Maps API - Distance Matrix", test_google_maps_api_Distancematrix)
-        print_test_result("Google Maps API - Elevation", test_google_maps_api_elevation)
-        print_test_result("Google Maps API - Find Place From Text", test_google_maps_api_Findplacefromtext)
-        print_test_result("Google Maps API - Geolocation", test_google_maps_api_geolocate)
-        print_test_result("Google Maps API - Nearest Roads", test_google_maps_api_NearestRoads)
-        print_test_result("Google Maps API - Places Details", test_google_maps_api_place_detais)
-        print_test_result("Google Maps API - Snap To Roads", test_google_maps_api_SnapToRoads)
-        print_test_result("Google Maps API - Speed Limit Roads", test_google_maps_api_SpeedLimits)
-        print_test_result("Google Maps API - StaticMap", test_google_maps_api_Staticmap)
-        print_test_result("Google Maps API - StreetView", test_google_maps_api_Streetview)
-        print_test_result("Google Maps API - Timezone", test_google_maps_api_Timezone)
-
-        # Extra Apis
-        print_test_result("Google Blogger API", test_google_blogger_api)
-        print_test_result("Google Books API", test_google_books_api)
-        print_test_result("Google Civic Information API", test_google_civic_information_api)
-        print_test_result("Google Custom Search API", test_google_custom_search_api)
-        print_test_result("Google Fonts API", test_google_fonts_api)
-        print_test_result("Google Natural Language API", test_google_natural_language_api)
-        print_test_result("Google Translate API", test_google_translate_api)
-        print_test_result("Google YouTube Data API", test_google_youtube_api)
-        
-        print_test_result("Google Drive API", test_google_drive_api)
-        print_test_result("Google Sheets API", test_google_sheets_api)
-        print_test_result("Google Vision API", test_google_vision_api)
-
-        print_test_result("Google Calendar API", test_google_calendar_api)
-        print_test_result("Google Tasks API", test_google_tasks_api)
-        print_test_result("Google People API", test_google_people_api)
-        print_test_result("Google Cloud Natural Language API", test_google_cloud_natural_language_api)
-        print_test_result("Google Cloud Text-to-Speech API", test_google_cloud_text_to_speech_api)
-        print_test_result("Google Cloud Speech-to-Text API", test_google_cloud_speech_to_text_api)
-
-
-        ''' Neet to invest more into this'''
-        #print_test_result("Google Cloud Storage API", test_google_cloud_storage_api)
-    
-    if output_file and api_results:
-        with open(output_file, 'w') as file:
-            json.dump(api_results, file, indent=4)
-        print(f"[!] Results saved to: {output_file}")
-
+# Modifique a função main para incluir o novo argumento
 def main():
     try:
         parser = argparse.ArgumentParser(description='Test Google API keys')
@@ -517,16 +696,17 @@ def main():
         parser.add_argument('-l', '--list', help='File containing list of API keys, one per line')
         parser.add_argument('-v', '--verbose', action='store_true', help='Print full responses for successful tests')
         parser.add_argument('-o', '--output', help='Output file to save the results')
+        parser.add_argument('-a', '--api', help='Select specific APIs to test (e.g., "1,2,3" or "1-5" or "1")')
 
         args = parser.parse_args()
 
         if args.key:
-            test_api_keys([args.key], args.verbose, args.output)
+            test_api_keys([args.key], args.verbose, args.output, args.api)
         elif args.list:
             with open(args.list, 'r') as file:
                 keys = file.read().splitlines()
                 print(f"[Total of keys]: {len(keys)}")               
-                test_api_keys(keys, args.verbose, args.output)
+                test_api_keys(keys, args.verbose, args.output, args.api)
         else:
             print("No API key or list provided. Use -k to provide a single key or -l to provide a list of keys.")
     
