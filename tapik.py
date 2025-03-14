@@ -604,53 +604,70 @@ def parse_api_selection(api_selection: str) -> list:
             result.add(int(part))
     return sorted(list(result))
 
+# Mapeamento de APIs reorganizado por categorias
 def get_api_function_by_number(number: int):
-    """Retorna a função de teste correspondente ao número da API"""
+    """Retorna a função de teste correspondente ao número da API, organizadas por categorias"""
     api_functions = {
-        1: ("Google Maps API - Consumer Search", test_google_maps_api_Consumersearch),
-        2: ("Google Maps API - StaticMap", test_google_maps_api_Staticmap),
-        3: ("Google Maps API - StreetView", test_google_maps_api_Streetview),
-        4: ("Google Maps API - Directions", test_google_maps_api_Directions),
-        5: ("Google Maps API - Geocode", test_google_maps_api_geocode),
-        6: ("Google Maps API - Distance Matrix", test_google_maps_api_Distancematrix),
-        7: ("Google Maps API - Find Place From Text", test_google_maps_api_Findplacefromtext),
-        8: ("Google Maps API - Autocomplete", test_google_maps_api_Autocomplete),
-        9: ("Google Maps API - Elevation", test_google_maps_api_elevation),
-        10: ("Google Maps API - Timezone", test_google_maps_api_Timezone),
-        11: ("Google Maps API - Nearest Roads", test_google_maps_api_NearestRoads),
-        12: ("Google Maps API - Geolocation", test_google_maps_api_geolocate),
-        13: ("Google Maps API - Snap To Roads", test_google_maps_api_SnapToRoads),
-        14: ("Google Maps API - Speed Limits", test_google_maps_api_SpeedLimits),
-        15: ("Google Maps API - Place Details", test_google_maps_api_place_detais),
-        16: ("Google Natural Language API", test_google_natural_language_api),
-        17: ("Google Books API", test_google_books_api),
-        18: ("Google YouTube API", test_google_youtube_api),
-        19: ("Google Custom Search API", test_google_custom_search_api),
-        20: ("Google Translate API", test_google_translate_api),
-        21: ("Google Civic API", test_google_civic_information_api),
-        22: ("Google Blogger API", test_google_blogger_api),
-        23: ("Google WebFonts API", test_google_fonts_api),
-        24: ("Google Cloud Storage API", test_google_cloud_storage_api),
-        25: ("Google Drive API", test_google_drive_api),
-        26: ("Google Sheets API", test_google_sheets_api),
-        27: ("Google Vision API", test_google_vision_api),
-        28: ("Google Calendar API", test_google_calendar_api),
-        29: ("Google Tasks API", test_google_tasks_api),
-        30: ("Google People API", test_google_people_api),
-        31: ("Google Cloud Natural Language API", test_google_cloud_natural_language_api),
-        32: ("Google Cloud Text-to-Speech API", test_google_cloud_text_to_speech_api),
-        33: ("Google Cloud Speech-to-Text API", test_google_cloud_speech_to_text_api),
-        34: ("Google Cloud Translation API", test_google_cloud_translation_api),
-        35: ("Google Cloud Document AI API", test_google_cloud_document_ai_api),
-        36: ("Google Cloud Video Intelligence API", test_google_cloud_video_intelligence_api),
-        37: ("Google Maps Places Photos API", test_google_maps_places_photos_api),
-        38: ("Google BigQuery API", test_google_bigquery_api),
-        39: ("Google Cloud Datastore API", test_google_cloud_datastore_api),
-        40: ("Google Cloud Natural Language Sentiment API", test_google_natural_language_sentiment),
-        41: ("Google Safe Browsing API", test_google_safe_browsing_api),
-        42: ("Google PageSpeed Insights API", test_google_pagespeed_api),
-        43: ("Google Maps Places Nearby API", test_google_maps_places_nearby),
-        44: ("Google Fact Check API", test_google_fact_check_api)
+        # Google Maps e Localização
+        1: ("Google Maps API - Geocode", test_google_maps_api_geocode),
+        2: ("Google Maps API - Places Nearby", test_google_maps_places_nearby),
+        3: ("Google Maps API - Place Details", test_google_maps_api_place_detais),
+        4: ("Google Maps API - Places Photos", test_google_maps_places_photos_api),
+        5: ("Google Maps API - Find Place From Text", test_google_maps_api_Findplacefromtext),
+        6: ("Google Maps API - Autocomplete", test_google_maps_api_Autocomplete),
+        7: ("Google Maps API - StaticMap", test_google_maps_api_Staticmap),
+        8: ("Google Maps API - StreetView", test_google_maps_api_Streetview),
+        9: ("Google Maps API - Directions", test_google_maps_api_Directions),
+        10: ("Google Maps API - Distance Matrix", test_google_maps_api_Distancematrix),
+        11: ("Google Maps API - Elevation", test_google_maps_api_elevation),
+        12: ("Google Maps API - Timezone", test_google_maps_api_Timezone),
+        13: ("Google Maps API - Geolocation", test_google_maps_api_geolocate),
+
+        # Google Roads APIs
+        14: ("Google Maps API - Nearest Roads", test_google_maps_api_NearestRoads),
+        15: ("Google Maps API - Snap To Roads", test_google_maps_api_SnapToRoads),
+        16: ("Google Maps API - Speed Limits", test_google_maps_api_SpeedLimits),
+
+        # Google Cloud AI & Machine Learning
+        17: ("Google Cloud Natural Language API", test_google_cloud_natural_language_api),
+        18: ("Google Natural Language Sentiment API", test_google_natural_language_sentiment),
+        19: ("Google Vision API", test_google_vision_api),
+        20: ("Google Cloud Text-to-Speech API", test_google_cloud_text_to_speech_api),
+        21: ("Google Cloud Speech-to-Text API", test_google_cloud_speech_to_text_api),
+        22: ("Google Cloud Video Intelligence API", test_google_cloud_video_intelligence_api),
+        23: ("Google Cloud Document AI API", test_google_cloud_document_ai_api),
+
+        # Google Translation & Language
+        24: ("Google Translate API", test_google_translate_api),
+        25: ("Google Cloud Translation API", test_google_cloud_translation_api),
+
+        # Google Search & Content
+        26: ("Google Custom Search API", test_google_custom_search_api),
+        27: ("Google Books API", test_google_books_api),
+        28: ("Google YouTube API", test_google_youtube_api),
+        29: ("Google Consumer Search", test_google_maps_api_Consumersearch),
+        30: ("Google Fact Check API", test_google_fact_check_api),
+        31: ("Google PageSpeed Insights API", test_google_pagespeed_api),
+        32: ("Google Safe Browsing API", test_google_safe_browsing_api),
+
+        # Google Cloud Storage & Database
+        33: ("Google Cloud Storage API", test_google_cloud_storage_api),
+        34: ("Google BigQuery API", test_google_bigquery_api),
+        35: ("Google Cloud Datastore API", test_google_cloud_datastore_api),
+
+        # Google Productivity & Organization
+        36: ("Google Drive API", test_google_drive_api),
+        37: ("Google Sheets API", test_google_sheets_api),
+        38: ("Google Calendar API", test_google_calendar_api),
+        39: ("Google Tasks API", test_google_tasks_api),
+
+        # Google Social & User Data
+        40: ("Google People API", test_google_people_api),
+        41: ("Google Blogger API", test_google_blogger_api),
+        42: ("Google Civic API", test_google_civic_information_api),
+
+        # Google Design & Fonts
+        43: ("Google WebFonts API", test_google_fonts_api),
     }
     return api_functions.get(number)
 
