@@ -26,7 +26,7 @@ class Colors:
 # Suppress InsecureRequestWarning to keep output clean
 warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
-VERSION = "v0.8.3"
+VERSION = "v0.8.6"
 
 # Configure logging
 logging.basicConfig(
@@ -71,7 +71,8 @@ class ApiTester:
         "REJECTED",
         "BLOCKED",
         "BAD REQUEST",
-        "INSUFFICIENTFILEPERMISSIONS"
+        "INSUFFICIENTFILEPERMISSIONS",
+        "ADMIN_ONLY_OPERATION"
     ]
     
     def __init__(self):
@@ -163,11 +164,30 @@ def banner():
 
 def process_response(response, verbose):
     """Processes API response and checks for error messages"""
-    error_messages = ["UNAUTHENTICATED", "PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", 
+    error_messages = ["ADMIN_ONLY_OPERATION", "UNAUTHENTICATED", "PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", 
                       "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
     for error_message in error_messages:
         if error_message in response.text.upper():
             return error_message  # Return the specific error message
+    # Verificar por códigos de erro HTTP específicos ou padrões de erro no JSON
+    if response.status_code >= 400:
+        try:
+            # Tenta analisar a resposta como JSON para verificar erros específicos
+            response_json = response.json()
+            
+            # Verifica se há estrutura de erro na resposta JSON
+            if 'error' in response_json:
+                # Casos específicos de autenticação que são falhas claras
+                if 'message' in response_json['error'] and (
+                    'authentication' in response_json['error']['message'].lower() or
+                    'required' in response_json['error']['message'].lower() or
+                    'configured for first-party' in response_json['error']['message'].lower()
+                ):
+                    return "PERMISSION_DENIED"
+        except:
+            # Se não conseguiu analisar JSON ou ocorreu outro erro
+            pass
+    # Se não houver erros, retorna o texto da resposta    
     return response.text if verbose else "WORKED"
 
 #"""Google Maps and Location"""
@@ -558,6 +578,24 @@ def test_google_fonts_api(api_key, verbose):
     response = requests.get(url)
     return process_response(response, verbose)
 
+#"""Firebase APIs"""
+def test_firebase_auth_api(api_key, verbose):
+    """44. Firebase Authentication API - For managing user authentication"""
+    url = f"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {}  # Corpo vazio é suficiente para testar a validade da chave
+    
+    response = requests.post(url, json=data, headers=headers)
+    
+    # Para o Firebase, um código 400 com mensagem específica indica que a chave é válida
+    # mas faltam parâmetros (o que é esperado no nosso teste)
+    if response.status_code == 400 and 'MISSING_EMAIL' in response.text:
+        if verbose:
+            return response.text
+        return "WORKED"  # A chave é válida para o Firebase Auth
+    
+    return process_response(response, verbose)
+
 def parse_api_selection(api_selection: str) -> list:
     """
     Converts the selection string to a list of API numbers
@@ -568,7 +606,7 @@ def parse_api_selection(api_selection: str) -> list:
     """
     result = set()
     if not api_selection:
-        return list(range(1,44))  # All APIs (1-44)
+        return list(range(1,45))  # All APIs (1-45)
         
     parts = api_selection.split(',')
     for part in parts:
@@ -643,6 +681,9 @@ def get_api_function_by_number(number: int):
 
         # Google Design & Fonts
         43: ("Google WebFonts API", test_google_fonts_api),
+        
+        # Firebase Services
+        44: ("Firebase Authentication API", test_firebase_auth_api)
     }
     return api_functions.get(number)
 
@@ -661,7 +702,8 @@ def list_available_apis():
         "Google Cloud Storage & Database": range(33, 36),
         "Google Productivity & Organization": range(36, 40),
         "Google Social & User Data": range(40, 43),
-        "Google Design & Fonts": [43]
+        "Google Design & Fonts": [43],
+        "Firebase Services": [44]
     }
     
     for category, api_range in categories.items():
@@ -717,8 +759,8 @@ def test_api_keys(api_keys, verbose, output_file=None, api_selection=None):
                         status = f"{Colors.SUCCESS}✅ [WORKED]{Colors.RESET}"
                         api_results[key][api_name] = result
                     
-                    # Display result with API number
-                    print(f"{status} | {Colors.BOLD}[{api_num}] {api_name}{Colors.RESET}")
+                    # Display result with API number BEFORE status (inverted order)
+                    print(f"{Colors.BOLD}[{api_num}] {api_name}{Colors.RESET} | {status}")
                     
                     # Show response details if verbose mode is enabled
                     if verbose and result not in ApiTester.ERROR_MESSAGES:
