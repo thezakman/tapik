@@ -26,7 +26,7 @@ class Colors:
 # Suppress InsecureRequestWarning to keep output clean
 warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
-VERSION = "v0.8.6"
+VERSION = "v0.8.7"
 
 # Configure logging
 logging.basicConfig(
@@ -164,6 +164,10 @@ def banner():
 
 def process_response(response, verbose):
     """Processes API response and checks for error messages"""
+    # Verifica se a resposta contém HTML da página de erro do Google
+    if "<html>" in response.text and "We're sorry..." in response.text:
+        return "BLOCKED"  # Identificamos que o Google está bloqueando a solicitação
+        
     error_messages = ["ADMIN_ONLY_OPERATION", "UNAUTHENTICATED", "PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", 
                       "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
     for error_message in error_messages:
