@@ -26,7 +26,7 @@ class Colors:
 # Suppress InsecureRequestWarning to keep output clean
 warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
-VERSION = "v0.8.7"
+VERSION = "v0.8.8"
 
 # Configure logging
 logging.basicConfig(
@@ -72,7 +72,8 @@ class ApiTester:
         "BLOCKED",
         "BAD REQUEST",
         "INSUFFICIENTFILEPERMISSIONS",
-        "ADMIN_ONLY_OPERATION"
+        "ADMIN_ONLY_OPERATION",
+        "CONFIGURATION_NOT_FOUND"
     ]
     
     def __init__(self):
@@ -169,7 +170,7 @@ def process_response(response, verbose):
         return "BLOCKED"  # Identificamos que o Google está bloqueando a solicitação
         
     error_messages = ["ADMIN_ONLY_OPERATION", "UNAUTHENTICATED", "PERMISSION_DENIED", "INVALID_ARGUMENT", "REQUEST_DENIED", 
-                      "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS"]
+                      "REJECTED", "BLOCKED", "BAD REQUEST", "INSUFFICIENTFILEPERMISSIONS", "CONFIGURATION_NOT_FOUND"]
     for error_message in error_messages:
         if error_message in response.text.upper():
             return error_message  # Return the specific error message
